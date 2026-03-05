@@ -2,6 +2,7 @@ package com.alamkanak.weekview
 
 import android.text.SpannableStringBuilder
 import android.text.StaticLayout
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 internal class TextFitter(
@@ -25,8 +26,9 @@ internal class TextFitter(
 
     private fun fitSingleEvent(eventChip: EventChip): StaticLayout {
         val bounds = eventChip.bounds
-        val availableHeight = bounds.height().roundToInt() - viewState.eventPaddingVertical * 2
-        val availableWidth = bounds.width().roundToInt() - viewState.eventPaddingVertical * 2
+        val statusBadgeHeight = EventStatusBadge.reservedHeight(viewState, eventChip.event).roundToInt()
+        val availableHeight = max(1, bounds.height().roundToInt() - viewState.eventPaddingVertical * 2 - statusBadgeHeight)
+        val availableWidth = max(1, bounds.width().roundToInt() - viewState.eventPaddingVertical * 2)
         return eventChip.fitText(availableWidth, availableHeight)
     }
 

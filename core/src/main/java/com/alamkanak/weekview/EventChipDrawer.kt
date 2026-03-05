@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.text.StaticLayout
+import kotlin.math.max
 
 internal class EventChipDrawer(
     private val viewState: ViewState
@@ -13,6 +14,15 @@ internal class EventChipDrawer(
     private val borderPaint = Paint()
 
     private val patternPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val statusBadgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = 0xFF4CAF50.toInt()
+    }
+    private val statusTextPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.LINEAR_TEXT_FLAG).apply {
+        style = Paint.Style.FILL
+        color = 0xFFFFFFFF.toInt()
+        textAlign = Paint.Align.CENTER
+    }
 
     internal fun draw(
         eventChip: EventChip,
@@ -22,6 +32,8 @@ internal class EventChipDrawer(
         canvas.drawInBounds(eventChip.bounds) {
             val event = eventChip.event
             val bounds = eventChip.bounds
+            val statusBadgeBounds = createStatusBadgeBounds(eventChip)
+
             val cornerRadius = event.style.cornerRadius?.toFloat() ?: viewState.eventCornerRadius.toFloat()
             updateBackgroundPaint(event, backgroundPaint)
             drawRoundRect(bounds, cornerRadius, cornerRadius, backgroundPaint)
@@ -49,7 +61,11 @@ internal class EventChipDrawer(
             }
 
             if (textLayout != null) {
-                drawEventTitle(eventChip, textLayout)
+                drawEventTitle(eventChip, textLayout, statusBadgeBounds?.top)
+            }
+
+            if (statusBadgeBounds != null) {
+                drawStatusBadge(statusBadgeBounds)
             }
         }
     }
@@ -130,7 +146,8 @@ internal class EventChipDrawer(
 
     private fun Canvas.drawEventTitle(
         eventChip: EventChip,
-        textLayout: StaticLayout
+        textLayout: StaticLayout,
+        statusBadgeTop: Float?
     ) {
         val bounds = eventChip.bounds
 
@@ -140,15 +157,69 @@ internal class EventChipDrawer(
             bounds.right - viewState.eventPaddingHorizontal
         }
 
+        val availableBottom = statusBadgeTop?.minus(EventStatusBadge.textSpacing(viewState)) ?: bounds.bottom
+        val availableTextHeight = availableBottom - bounds.top
+        if (availableTextHeight <= 0f) {
+            return
+        }
+
         val verticalOffset = if (eventChip.event.isAllDay) {
-            (bounds.height() - textLayout.height) / 2f
+            max(viewState.eventPaddingVertical.toFloat(), (availableTextHeight - textLayout.height) / 2f)
         } else {
             viewState.eventPaddingVertical.toFloat()
         }
 
-        withTranslation(x = horizontalOffset, y = bounds.top + verticalOffset) {
-            draw(textLayout)
+        val clipBounds = RectF(bounds.left, bounds.top, bounds.right, availableBottom)
+        drawInBounds(clipBounds) {
+            withTranslation(x = horizontalOffset, y = bounds.top + verticalOffset) {
+                draw(textLayout)
+            }
         }
+    }
+
+    private fun Canvas.drawStatusBadge(bounds: RectF) {
+        val cornerRadius = bounds.height() / 3f
+        drawRoundRect(bounds, cornerRadius, cornerRadius, statusBadgePaint)
+
+        val textOffset = (statusTextPaint.ascent() + statusTextPaint.descent()) / 2f
+        drawText(
+            EventStatusBadge.text,
+            bounds.centerX(),
+            bounds.centerY() - textOffset,
+            statusTextPaint
+        )
+    }
+
+    private fun createStatusBadgeBounds(eventChip: EventChip): RectF? {
+        val event = eventChip.event
+        val bounds = eventChip.bounds
+
+        statusTextPaint.textSize = EventStatusBadge.textSize(viewState, event)
+
+        val textWidth = statusTextPaint.measureText(EventStatusBadge.text)
+        val textHeight = statusTextPaint.textHeight
+
+        val horizontalPadding = EventStatusBadge.horizontalPadding(viewState)
+        val verticalPadding = EventStatusBadge.verticalPadding(viewState)
+
+        val badgeWidth = textWidth + horizontalPadding * 2
+        val badgeHeight = textHeight + verticalPadding * 2
+
+        val bottom = bounds.bottom - EventStatusBadge.bottomSpacing(viewState)
+        val top = bottom - badgeHeight
+
+        if (top >= bottom || bottom <= bounds.top) {
+            return null
+        }
+
+        val start = if (viewState.isLtr) {
+            bounds.left + viewState.eventPaddingHorizontal
+        } else {
+            bounds.right - viewState.eventPaddingHorizontal - badgeWidth
+        }
+        val end = start + badgeWidth
+
+        return RectF(start, top, end, bottom)
     }
 
     private fun updateBackgroundPaint(
@@ -171,3 +242,6 @@ internal class EventChipDrawer(
         style = Paint.Style.STROKE
     }
 }
+
+private val Paint.textHeight: Float
+    get() = descent() - ascent()
