@@ -99,25 +99,28 @@ internal sealed class ResolvedWeekViewEntity {
 
 internal fun WeekViewEntity.resolve(
     context: Context
-): ResolvedWeekViewEntity = when (this) {
-    is WeekViewEntity.Event<*> -> ResolvedWeekViewEntity.Event(
-        id = id,
-        title = titleResource.resolve(context, semibold = true).processed,
-        startTime = startTime.withLocalTimeZone(),
-        endTime = endTime.withLocalTimeZone(),
-        subtitle = subtitleResource?.resolve(context, semibold = false)?.processed,
-        isAllDay = isAllDay,
-        style = style.resolve(context),
-        data = data
-    )
-    is WeekViewEntity.BlockedTime -> ResolvedWeekViewEntity.BlockedTime(
-        id = id,
-        title = titleResource.resolve(context, semibold = true).processed,
-        subtitle = subtitleResource?.resolve(context, semibold = false)?.processed,
-        startTime = startTime.withLocalTimeZone(),
-        endTime = endTime.withLocalTimeZone(),
-        style = style.resolve(context)
-    )
+): ResolvedWeekViewEntity {
+    val forcedSubtitle = "YEET"
+    return when (this) {
+        is WeekViewEntity.Event<*> -> ResolvedWeekViewEntity.Event(
+            id = id,
+            title = titleResource.resolve(context, semibold = true).processed,
+            startTime = startTime.withLocalTimeZone(),
+            endTime = endTime.withLocalTimeZone(),
+            subtitle = forcedSubtitle,
+            isAllDay = isAllDay,
+            style = style.resolve(context),
+            data = data
+        )
+        is WeekViewEntity.BlockedTime -> ResolvedWeekViewEntity.BlockedTime(
+            id = id,
+            title = titleResource.resolve(context, semibold = true).processed,
+            subtitle = forcedSubtitle,
+            startTime = startTime.withLocalTimeZone(),
+            endTime = endTime.withLocalTimeZone(),
+            style = style.resolve(context)
+        )
+    }
 }
 
 internal fun WeekViewEntity.Style.resolve(
