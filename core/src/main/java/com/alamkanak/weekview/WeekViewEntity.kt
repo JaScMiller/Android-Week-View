@@ -5,6 +5,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DimenRes
 import androidx.annotation.Dimension
+import androidx.annotation.StringRes
 import java.util.Calendar
 
 /**
@@ -205,6 +206,8 @@ sealed class WeekViewEntity {
         internal var borderWidthResource: DimenResource? = null
         internal var borderColorResource: ColorResource? = null
         internal var backgroundColorResource: ColorResource? = null
+        internal var statusColorResource: ColorResource? = null
+        internal var statusStringResource: TextResource? = null
         internal var cornerRadiusResource: DimenResource? = null
         internal var pattern: Pattern? = null
 
@@ -294,6 +297,30 @@ sealed class WeekViewEntity {
             }
 
             @PublicApi
+            fun setStatusColor(@ColorInt color: Int): Builder {
+                style.statusColorResource = ColorResource.Value(color)
+                return this
+            }
+
+            @PublicApi
+            fun setStatusColorResource(@ColorRes resId: Int): Builder {
+                style.statusColorResource = ColorResource.Id(resId)
+                return this
+            }
+
+            @PublicApi
+            fun setStatusString(status: CharSequence?): Builder {
+                style.statusStringResource = status?.let { TextResource.Value(it) }
+                return this
+            }
+
+            @PublicApi
+            fun setStatusString(@StringRes resId: Int): Builder {
+                style.statusStringResource = TextResource.Id(resId)
+                return this
+            }
+
+            @PublicApi
             fun setPattern(pattern: Pattern): Builder {
                 style.pattern = pattern
                 return this
@@ -344,6 +371,8 @@ data class WeekViewEvent<T> internal constructor(
         internal var textColorResource: ColorResource? = null
         internal var borderWidthResource: DimenResource? = null
         internal var borderColorResource: ColorResource? = null
+        internal var statusColorResource: ColorResource? = null
+        internal var statusStringResource: TextResource? = null
 
         @Deprecated("No longer used.")
         internal var isTextStrikeThrough: Boolean = false
@@ -404,6 +433,30 @@ data class WeekViewEvent<T> internal constructor(
             @PublicApi
             fun setBorderColorResource(@ColorRes resId: Int): Builder {
                 style.borderColorResource = ColorResource.Id(resId)
+                return this
+            }
+
+            @PublicApi
+            fun setStatusColor(@ColorInt color: Int): Builder {
+                style.statusColorResource = ColorResource.Value(color)
+                return this
+            }
+
+            @PublicApi
+            fun setStatusColorResource(@ColorRes resId: Int): Builder {
+                style.statusColorResource = ColorResource.Id(resId)
+                return this
+            }
+
+            @PublicApi
+            fun setStatusString(status: CharSequence?): Builder {
+                style.statusStringResource = status?.let { TextResource.Value(it) }
+                return this
+            }
+
+            @PublicApi
+            fun setStatusString(@StringRes resId: Int): Builder {
+                style.statusStringResource = TextResource.Id(resId)
                 return this
             }
 
@@ -518,5 +571,7 @@ private fun WeekViewEvent.Style.toWeekViewEntityStyle(
         .apply { textColorResource?.let { setTextColor(it.resolve(context)) } }
         .apply { borderWidthResource?.let { setBorderWidth(it.resolve(context)) } }
         .apply { borderColorResource?.let { setBorderColor(it.resolve(context)) } }
+        .apply { statusColorResource?.let { setStatusColor(it.resolve(context)) } }
+        .apply { statusStringResource?.let { setStatusString(it.resolve(context, semibold = false)) } }
         .build()
 }

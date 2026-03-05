@@ -4,7 +4,7 @@ import kotlin.math.max
 
 internal object EventStatusBadge {
 
-    const val text: String = "PAID"
+    private const val defaultColor: Int = 0xFF4CAF50.toInt()
 
     private const val textSizeScale = 0.65f
     private const val horizontalPaddingScale = 0.75f
@@ -14,6 +14,17 @@ internal object EventStatusBadge {
     private const val minimumVerticalPadding = 1f
     private const val minimumBottomSpacing = 1f
     private const val minimumTextSpacing = 1f
+
+    fun text(event: ResolvedWeekViewEntity): String? {
+        return event.style.statusString
+            ?.toString()
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+    }
+
+    fun color(event: ResolvedWeekViewEntity): Int {
+        return event.style.statusColor ?: defaultColor
+    }
 
     fun textSize(
         viewState: ViewState,
@@ -49,6 +60,10 @@ internal object EventStatusBadge {
         viewState: ViewState,
         event: ResolvedWeekViewEntity
     ): Float {
+        if (text(event) == null) {
+            return 0f
+        }
+
         val badgeHeight = textSize(viewState, event) + verticalPadding(viewState) * 2
         return badgeHeight + bottomSpacing(viewState) + textSpacing(viewState)
     }
