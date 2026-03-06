@@ -7,10 +7,10 @@ internal object EventStatusBadge {
     private const val defaultColor: Int = 0xFF4CAF50.toInt()
 
     private const val textSizeScale = 0.65f
-    private const val horizontalPaddingScale = 0.75f
+    private const val horizontalMarginScale = 0.35f
     private const val verticalPaddingScale = 0.35f
 
-    private const val minimumHorizontalPadding = 2f
+    private const val minimumHorizontalMargin = 1f
     private const val minimumVerticalPadding = 1f
     private const val minimumBottomSpacing = 1f
     private const val minimumTextSpacing = 1f
@@ -38,14 +38,14 @@ internal object EventStatusBadge {
         return baseTextSize * textSizeScale
     }
 
-    fun horizontalPadding(viewState: ViewState): Float {
-        val unscaled = viewState.eventPaddingHorizontal * horizontalPaddingScale
-        return max(minimumHorizontalPadding, unscaled)
-    }
-
     fun verticalPadding(viewState: ViewState): Float {
         val unscaled = viewState.eventPaddingVertical * verticalPaddingScale
         return max(minimumVerticalPadding, unscaled)
+    }
+
+    fun horizontalMargin(viewState: ViewState): Float {
+        val unscaled = viewState.eventPaddingHorizontal * horizontalMarginScale
+        return max(minimumHorizontalMargin, unscaled)
     }
 
     fun bottomSpacing(viewState: ViewState): Float {

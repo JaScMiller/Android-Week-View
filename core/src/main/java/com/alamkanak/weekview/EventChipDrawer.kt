@@ -184,12 +184,14 @@ internal class EventChipDrawer(
         drawRoundRect(bounds, cornerRadius, cornerRadius, statusBadgePaint)
 
         val textOffset = (statusTextPaint.ascent() + statusTextPaint.descent()) / 2f
-        drawText(
-            statusBadge.text,
-            bounds.centerX(),
-            bounds.centerY() - textOffset,
-            statusTextPaint
-        )
+        drawInBounds(bounds) {
+            drawText(
+                statusBadge.text,
+                bounds.centerX(),
+                bounds.centerY() - textOffset,
+                statusTextPaint
+            )
+        }
     }
 
     private fun createStatusBadge(eventChip: EventChip): StatusBadge? {
@@ -199,13 +201,15 @@ internal class EventChipDrawer(
 
         statusTextPaint.textSize = EventStatusBadge.textSize(viewState, event)
 
-        val textWidth = statusTextPaint.measureText(statusText)
         val textHeight = statusTextPaint.textHeight
 
-        val horizontalPadding = EventStatusBadge.horizontalPadding(viewState)
+        val horizontalMargin = EventStatusBadge.horizontalMargin(viewState)
         val verticalPadding = EventStatusBadge.verticalPadding(viewState)
 
-        val badgeWidth = textWidth + horizontalPadding * 2
+        val badgeWidth = bounds.width() - horizontalMargin * 2
+        if (badgeWidth <= 0f) {
+            return null
+        }
         val badgeHeight = textHeight + verticalPadding * 2
 
         val bottom = bounds.bottom - EventStatusBadge.bottomSpacing(viewState)
@@ -215,11 +219,7 @@ internal class EventChipDrawer(
             return null
         }
 
-        val start = if (viewState.isLtr) {
-            bounds.left + viewState.eventPaddingHorizontal
-        } else {
-            bounds.right - viewState.eventPaddingHorizontal - badgeWidth
-        }
+        val start = bounds.left + horizontalMargin
         val end = start + badgeWidth
 
         return StatusBadge(
